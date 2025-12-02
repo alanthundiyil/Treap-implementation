@@ -1,44 +1,55 @@
-import java.util.Random;
+import java.util.*;
 
 public class TreapDemo {
 
     public static void main(String[] args) {
-        // ----- 1. Build two example sets A and B -----
+        Scanner sc = new Scanner(System.in);
+
         Treap A = new Treap();
         Treap B = new Treap();
 
-        // A = {1, 3, 5, 7}
-        A.insert(1);
-        A.insert(3);
-        A.insert(5);
-        A.insert(7);
+        // ------- INPUT SET A -------
+        System.out.println("Enter elements for Set A (space separated):");
+        String[] aVals = sc.nextLine().trim().split("\\s+");
 
-        // B = {3, 4, 5, 8}
-        B.insert(3);
-        B.insert(4);
-        B.insert(5);
-        B.insert(8);
+        for (String s : aVals) {
+            if (!s.isEmpty()) {
+                A.insert(Integer.parseInt(s));
+            }
+        }
 
-        System.out.println("Treap A (inorder):");
-        A.printInOrder(); // should be 1 3 5 7
-        System.out.println("Treap B (inorder):");
-        B.printInOrder(); // should be 3 4 5 8
+        // ------- INPUT SET B -------
+        System.out.println("Enter elements for Set B (space separated):");
+        String[] bVals = sc.nextLine().trim().split("\\s+");
 
-        // ----- 2. Compute UNION, INTERSECTION, DIFFERENCE -----
-        Treap union = Treap.unionTreaps(A, B);        // A ∪ B
-        Treap inter = Treap.intersectTreaps(A, B);    // A ∩ B
-        Treap diff  = Treap.differenceTreaps(A, B);   // A \ B
+        for (String s : bVals) {
+            if (!s.isEmpty()) {
+                B.insert(Integer.parseInt(s));
+            }
+        }
 
-        // ----- 3. Show results -----
-        System.out.println("\n--- Set Operations ---");
+        // ------- DISPLAY INPUT ------
+        System.out.print("\nTreap A (inorder): ");
+        A.printInOrder();
+
+        System.out.print("Treap B (inorder): ");
+        B.printInOrder();
+
+        // ------- OPERATIONS ----------
+        Treap union = Treap.unionTreaps(A, B);
+        Treap inter = Treap.intersectTreaps(A, B);
+        Treap diff  = Treap.differenceTreaps(A, B);
+
+        // ------- RESULTS --------------
+        System.out.println("\n--- Results ---");
         System.out.print("Union (A ∪ B):         ");
-        union.printInOrder();        // expected: 1 3 4 5 7 8
+        union.printInOrder();
 
         System.out.print("Intersection (A ∩ B): ");
-        inter.printInOrder();        // expected: 3 5
+        inter.printInOrder();
 
         System.out.print("Difference (A \\ B):   ");
-        diff.printInOrder();         // expected: 1 7
+        diff.printInOrder();
     }
 }
 
