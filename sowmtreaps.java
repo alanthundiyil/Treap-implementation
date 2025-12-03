@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class Main {
+public class sowmtreaps {
 
     public static void main(String[] args) {
         Random rand = new Random();

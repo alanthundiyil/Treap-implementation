@@ -5,13 +5,39 @@ public class TreapDemo {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
+        System.out.println("Choose mode:");
+        System.out.println("1) Manual input (read sets from keyboard)");
+        System.out.println("2) Random test (generate large random sets)");
+        System.out.print("Enter 1 or 2: ");
+
+        int choice = 1;
+        try {
+            String line = sc.nextLine().trim();
+            if (!line.isEmpty()) {
+                choice = Integer.parseInt(line);
+            }
+        } catch (Exception e) {
+            // default to 1
+            choice = 1;
+        }
+
+        if (choice == 2) {
+            runRandomTest();
+        } else {
+            runManualInput(sc);
+        }
+
+        sc.close();
+    }
+
+    // --------- MODE 1: MANUAL INPUT ----------------
+    private static void runManualInput(Scanner sc) {
         Treap A = new Treap();
         Treap B = new Treap();
 
         // ------- INPUT SET A -------
         System.out.println("Enter elements for Set A (space separated):");
         String[] aVals = sc.nextLine().trim().split("\\s+");
-
         for (String s : aVals) {
             if (!s.isEmpty()) {
                 A.insert(Integer.parseInt(s));
@@ -21,7 +47,6 @@ public class TreapDemo {
         // ------- INPUT SET B -------
         System.out.println("Enter elements for Set B (space separated):");
         String[] bVals = sc.nextLine().trim().split("\\s+");
-
         for (String s : bVals) {
             if (!s.isEmpty()) {
                 B.insert(Integer.parseInt(s));
@@ -45,11 +70,60 @@ public class TreapDemo {
         System.out.print("Union (A ∪ B):         ");
         union.printInOrder();
 
-        System.out.print("Intersection (A ∩ B): ");
+        System.out.print("Intersection (A ∩ B):  ");
         inter.printInOrder();
 
         System.out.print("Difference (A \\ B):   ");
         diff.printInOrder();
+    }
+
+    // --------- MODE 2: RANDOM TEST -----------------
+    private static void runRandomTest() {
+        Random rand = new Random();
+
+        Treap A = new Treap();
+        Treap B = new Treap();
+
+        int N = 5000;      // nodes per tree
+        int RANGE = 5050;  // value range
+
+        // Treap A 
+        Set<Integer> usedA = new HashSet<>();
+        while (A.size() < N) {
+            int val = rand.nextInt(RANGE) + 1;
+            if (usedA.add(val)) {
+                A.insert(val);
+            }
+        }
+
+        // Treap B 
+        Set<Integer> usedB = new HashSet<>();
+        while (B.size() < N) {
+            int val = rand.nextInt(RANGE) + 1;
+            if (usedB.add(val)) {
+                B.insert(val);
+            }
+        }
+
+        System.out.println("Treap A size: " + A.size());
+        System.out.println("Treap B size: " + B.size());
+
+        // Perform set operations
+        Treap union = Treap.unionTreaps(A, B);
+        Treap inter = Treap.intersectTreaps(A, B);
+        Treap diff  = Treap.differenceTreaps(A, B);
+
+        // Print results (preorder just to see structure)
+        System.out.print("Union (A ∪ B): ");
+        union.printPreOrder();
+
+        System.out.print("\n\nIntersection (A ∩ B): ");
+        inter.printPreOrder();
+
+        System.out.print("\n\nDifference (A \\ B): ");
+        diff.printPreOrder();
+
+        System.out.println();
     }
 }
 
@@ -77,7 +151,7 @@ class Treap {
     private static final Random RAND = new Random();
     Node root;
 
-    /* ------------ Basic treap operations (insert, print) ------------ */
+    /* ------------ Basic treap operations (insert, size, print) ------------ */
 
     public void insert(int key) {
         root = insert(root, key);
@@ -133,13 +207,34 @@ class Treap {
         printInOrder(r.right);
     }
 
+    public void printPreOrder() {
+        printPreOrder(root);
+        System.out.println();
+    }
+
+    private void printPreOrder(Node r) {
+        if (r == null) return;
+        System.out.print(r.key + " ");
+        printPreOrder(r.left);
+        printPreOrder(r.right);
+    }
+
+    public int size() {
+        return size(root);
+    }
+
+    private int size(Node r) {
+        if (r == null) return 0;
+        return 1 + size(r.left) + size(r.right);
+    }
+
     /* ------------------ Core building blocks: split, join ------------------ */
 
     // split(root, key):
     //   less    = all nodes with key < given key
     //   equal   = node with that key (or null if not present)
     //   greater = all nodes with key > given key
-    static SplitResult split(Node root, int key) {
+    static Treap.SplitResult split(Node root, int key) {
         SplitResult res = new SplitResult();
         if (root == null) {
             return res;
