@@ -8,17 +8,17 @@ public class Main {
         Treap A = new Treap();
         Treap B = new Treap();
 
-        int N = 500;       // nodes per tree
-        int RANGE = 5000;  // key range, large to ensure uniqueness
+        int N = 5000;       // nodes per tree
+        int RANGE = 5050;  //  range
 
-        // ------- GENERATE UNIQUE TREAP A -------
+        // Treap A 
         Set<Integer> usedA = new HashSet<>();
         while (A.size() < N) {
             int val = rand.nextInt(RANGE) + 1;
             if (usedA.add(val)) A.insert(val);
         }
 
-        // ------- GENERATE UNIQUE TREAP B -------
+        //  Treap B 
         Set<Integer> usedB = new HashSet<>();
         while (B.size() < N) {
             int val = rand.nextInt(RANGE) + 1;
@@ -28,25 +28,24 @@ public class Main {
         System.out.println("Treap A size: " + A.size());
         System.out.println("Treap B size: " + B.size());
 
-        // ------- SET OPERATIONS -------
+        // Perform set operations
         Treap union = Treap.unionTreaps(A, B);
         Treap inter = Treap.intersectTreaps(A, B);
         Treap diff  = Treap.differenceTreaps(A, B);
 
-        // ------- PRINT RESULTS -------
-        System.out.print("Union (A ∪ B):         ");
-        union.printInOrderWithPriority();
+        // Print results 
+        System.out.print("Union (A ∪ B):   ");
+        union.printPreOrder();
 
-        System.out.print("Intersection (A ∩ B): ");
-        inter.printInOrderWithPriority();
+        System.out.print("\n\nIntersection (A ∩ B):  ");
+        inter.printPreOrder();
 
-        System.out.print("Difference (A \\ B):   ");
-        diff.printInOrderWithPriority();
+        System.out.print("\n\nDifference (A \\ B):   ");
+        diff.printPreOrder();
     }
 }
 
-/* ======================== Treap Implementation ======================== */
-
+/*  Treap Implementation  */
 class Treap {
 
     static class Node {
@@ -63,7 +62,7 @@ class Treap {
     private static final Random RAND = new Random();
     Node root;
 
-    // Insert unique nodes (duplicates in same treap are discarded)
+    // Insert node 
     public void insert(int key) {
         root = insert(root, key);
     }
@@ -73,10 +72,10 @@ class Treap {
         if (key == r.key) return r; // discard duplicates
         if (key < r.key) {
             r.left = insert(r.left, key);
-            if (r.left.priority < r.priority) r = rotateRight(r);
+            if (r.left.priority > r.priority) r = rotateRight(r);
         } else {
             r.right = insert(r.right, key);
-            if (r.right.priority < r.priority) r = rotateLeft(r);
+            if (r.right.priority > r.priority) r = rotateLeft(r);
         }
         return r;
     }
@@ -101,9 +100,10 @@ class Treap {
         return 1 + size(r.left) + size(r.right);
     }
 
-    public void printInOrderWithPriority() {
+    // Pre-order traversal printing (root first)
+    public void printPreOrder() {
         List<String> list = new ArrayList<>();
-        collect(root, list);
+        preOrder(root, list);
         for (int i = 0; i < list.size(); i++) {
             System.out.print(list.get(i));
             if (i != list.size() - 1) System.out.print(" ");
@@ -111,18 +111,15 @@ class Treap {
         System.out.println();
     }
 
-    private void collect(Node r, List<String> list) {
+    private void preOrder(Node r, List<String> list) {
         if (r == null) return;
-        collect(r.left, list);
         list.add("(" + r.key + "," + r.priority + ")");
-        collect(r.right, list);
+        preOrder(r.left, list);
+        preOrder(r.right, list);
     }
 
-    /* ----------------------- Split & Join ----------------------- */
-
-    private static class SplitResult {
-        Node less, gtr, duplicate;
-    }
+    /* Split & Join */
+    private static class SplitResult { Node less, gtr, duplicate; }
 
     private static SplitResult split(Node r, int key) {
         SplitResult res = new SplitResult();
@@ -156,8 +153,9 @@ class Treap {
     private static Node join(Node r1, Node r2) {
         if (r1 == null) return r2;
         if (r2 == null) return r1;
+
         Node root;
-        if (r1.priority < r2.priority) {
+        if (r1.priority > r2.priority) {
             root = new Node(r1.key, r1.priority);
             root.left = r1.left;
             root.right = join(r1.right, r2);
@@ -169,19 +167,17 @@ class Treap {
         return root;
     }
 
-    /* ----------------------- Set Operations (highest priority, discard duplicates) ----------------------- */
-
+    /*  Set Operations */
     private static Node union(Node r1, Node r2) {
         if (r1 == null) return r2;
         if (r2 == null) return r1;
 
-        if (r1.priority > r2.priority) { Node tmp = r1; r1 = r2; r2 = tmp; }
+        if (r1.priority < r2.priority) { Node tmp = r1; r1 = r2; r2 = tmp; }
 
         SplitResult s = split(r2, r1.key);
         Node root = (s.duplicate != null && s.duplicate.priority > r1.priority)
                 ? new Node(s.duplicate.key, s.duplicate.priority)
                 : new Node(r1.key, r1.priority);
-
         root.left = union(r1.left, s.less);
         root.right = union(r1.right, s.gtr);
         return root;
@@ -227,8 +223,7 @@ class Treap {
         }
     }
 
-    /* ----------------------- Wrappers ----------------------- */
-
+    /*  Wrappers  */
     private static Node clone(Node r) {
         if (r == null) return null;
         Node n = new Node(r.key, r.priority);
